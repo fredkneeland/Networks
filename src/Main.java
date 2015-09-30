@@ -17,4 +17,11 @@ public class Main
 
         server.run();
     }
+
+    public static void runClient(String[] args)
+    {
+        Client client = new Client();
+
+        client.run();
+    }
 }
