@@ -1,8 +1,13 @@
 import java.net.*;
 import java.io.*;
+import java.util.*;
 
 public class Utilities
 {
+    public static DatagramSocket sockets;
+    public static DatagramPacket packets;
+
+
     public static void sendPacket(DatagramSocket socket, DatagramPacket packet)
     {
         System.out.println("Send Packet");
@@ -20,14 +25,19 @@ public class Utilities
     public static void recievePacket(DatagramSocket socket, DatagramPacket packet)
     {
         System.out.println("Recieve Packet");
-        try
-        {
-            socket.receive(packet);
-        }
-        catch (Exception e)
-        {
-            System.out.println("Error trying to recieve: " + e);
-        }
-
+        Timer timer = new Timer();
+        sockets = socket;
+        packets = packet;
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // Your database code here
+                try {
+                    sockets.receive(packets);
+                } catch (Exception e) {
+                    System.out.println("Error trying to recieve: " + e);
+                }
+            }
+        }, 50);
     }
 }
