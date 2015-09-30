@@ -6,6 +6,7 @@ public class Main
         int numb = 12;
         byte a = (byte) numb;
         System.out.println("Byte: " + a);
+        runClient(args);
     }
 
     public static void runServer(String[] args)
