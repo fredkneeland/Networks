@@ -10,14 +10,19 @@ public class Server
     int portOfClient;
     DatagramSocket sendSocket;
     DatagramSocket recieveSocket;
+    boolean[] packetSent;
+    int[] packetSentTimer;
 
 
     public Server(int sendSocketPort, int recieveSocketPort, int portOfClient)
     {
+        // initialize defaults
         this.windowSize = 0;
         this.maximumSequenceNumb = 0;
         this.droppedPackets = 0;
         this.portOfClient = portOfClient;
+
+        // create sockets
         try
         {
             this.sendSocket = new DatagramSocket(sendSocketPort);
@@ -41,6 +46,14 @@ public class Server
         this.maximumSequenceNumb = in.nextInt();
         System.out.println("Select the packet(s) that will be dropped: ");
         this.droppedPackets = in.nextInt();
+
+        // setup arrays for packet sending
+        this.packetSent = new boolean[maximumSequenceNumb];
+        this.packetSentTimer = new int[maximumSequenceNumb];
+        for (int i = 0; i < packetSent.length; i++)
+        {
+            this.packetSent[i] = false;
+        }
 
 
         // send initial data about window size to reciever
@@ -73,10 +86,27 @@ public class Server
 
         System.out.println("Receive confirmation from the receiver");
 
+        int currentWindowStart = 0;
+
         while (true)
         {
             // send packets in window and update window when ack. arrives
+            for (int i = 0; i < this.windowSize; i++)
+            {
+                int currentDate;
+                int currentPacketIndex = (currentWindowStart  + i) % this.maximumSequenceNumb;
+                // if we haven't sent the current packet
+                if (!this.packetSent[currentPacketIndex])
+                {
+                    // send packet
 
+                    this.packetSent[currentPacketIndex] = true;
+                }
+                /*else if (this.packetSent[currentPacketIndex] && this.packetSentTimer[currentPacketIndex] < )
+                {
+
+                }*/
+            }
 
         }
     }
