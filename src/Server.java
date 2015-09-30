@@ -11,6 +11,7 @@ public class Server
     DatagramSocket sendSocket;
     DatagramSocket recieveSocket;
     boolean[] packetSent;
+    boolean[] ackArrived;
     int[] packetSentTimer;
 
 
@@ -50,37 +51,46 @@ public class Server
         // setup arrays for packet sending
         this.packetSent = new boolean[maximumSequenceNumb];
         this.packetSentTimer = new int[maximumSequenceNumb];
+        this.ackArrived = new boolean[maximumSequenceNumb];
         for (int i = 0; i < packetSent.length; i++)
         {
             this.packetSent[i] = false;
+            this.ackArrived[i] = false;
         }
-
-
-        // send initial data about window size to reciever
-        byte[] setUpInfo = new byte[1024];
-        setUpInfo[0] = (byte) this.windowSize;
-        setUpInfo[1] = (byte) this.maximumSequenceNumb;
-        DatagramPacket setUpPacket = new DatagramPacket(setUpInfo, setUpInfo.length, this.IPAddress, this.portOfClient);
-        Utilities.sendPacket(this.sendSocket, setUpPacket);
-        System.out.println("Send window’s size and maximum seq. number to the receiver");
 
         boolean recievedInitalAck = false;
 
+        // go until first packet has been acked
         while (!recievedInitalAck)
         {
-            byte[] ack = new byte[1024];
-            DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
-            try
+            // send initial data about window size to reciever
+            byte[] setUpInfo = new byte[2];
+            setUpInfo[0] = (byte) this.windowSize;
+            setUpInfo[1] = (byte) this.maximumSequenceNumb;
+            DatagramPacket setUpPacket = new DatagramPacket(setUpInfo, setUpInfo.length, this.IPAddress, this.portOfClient);
+            Utilities.sendPacket(this.sendSocket, setUpPacket);
+            System.out.println("Send window’s size and maximum seq. number to the receiver");
+
+            int startTime = (int) System.currentTimeMillis();
+            int currentTime = (int) System.currentTimeMillis();
+            // wait for one second before resending
+            while (startTime > (currentTime - 1000) && !recievedInitalAck)
             {
-                this.recieveSocket.receive(ackPacket);
-                if (ackPacket.getAddress() != null)
+                byte[] ack = new byte[2];
+                DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
+                try
                 {
-                    recievedInitalAck = true;
+                    this.recieveSocket.receive(ackPacket);
+                    if (ackPacket.getAddress() != null)
+                    {
+                        recievedInitalAck = true;
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                System.out.println("Failed receiving setup ack: " + e);
+                catch (Exception e)
+                {
+                    System.out.println("Failed receiving setup ack: " + e);
+                }
+                currentTime = (int) System.currentTimeMillis();
             }
         }
 
@@ -93,21 +103,52 @@ public class Server
             // send packets in window and update window when ack. arrives
             for (int i = 0; i < this.windowSize; i++)
             {
-                int currentDate;
+                int currentDate = (int) System.currentTimeMillis();
                 int currentPacketIndex = (currentWindowStart  + i) % this.maximumSequenceNumb;
                 // if we haven't sent the current packet
                 if (!this.packetSent[currentPacketIndex])
                 {
                     // send packet
-
+                    byte[] info = new byte[1];
+                    info[0] = (byte) currentPacketIndex;
+                    DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
+                    Utilities.sendPacket(this.sendSocket, packet);
+                    System.out.println("Sent packet: " + currentPacketIndex);
+                    this.packetSentTimer[currentPacketIndex] = currentDate;
                     this.packetSent[currentPacketIndex] = true;
                 }
-                /*else if (this.packetSent[currentPacketIndex] && this.packetSentTimer[currentPacketIndex] < )
+                else if (this.packetSent[currentPacketIndex] && this.packetSentTimer[currentPacketIndex] < (currentDate - 1000))
                 {
-
-                }*/
+                    // do nothing
+                }
+                else if (!this.ackArrived[currentPacketIndex])
+                {
+                    // we have passed the timer for this packet and should resend
+                    byte[] info = new byte[1];
+                    info[0] = (byte) currentPacketIndex;
+                    DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
+                    Utilities.sendPacket(this.sendSocket, packet);
+                    this.packetSentTimer[currentPacketIndex] = currentDate;
+                }
             }
 
+            // update window for received packet
+            byte[] ack = new byte[1];
+            DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
+            Utilities.receivePacket(this.recieveSocket, ackPacket);
+
+            if (ack[0] != 0)
+            {
+                int packetNumb = ((int) ack[0]) - 1;
+                if (packetNumb == currentWindowStart)
+                {
+                    currentWindowStart++;
+                    System.out.println("Window was moved up");
+                }
+                this.ackArrived[packetNumb] = true;
+
+                System.out.println("We have received packet: " + ack[0]);
+            }
         }
     }
 }
