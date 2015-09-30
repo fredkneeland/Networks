@@ -133,6 +133,14 @@ public class Server
 
             if (ack[0] != 0)
             {
+                int packetNumb = ((int) ack[0]) - 1;
+                if (packetNumb == currentWindowStart)
+                {
+                    currentWindowStart++;
+                    System.out.println("Window was moved up");
+                }
+                this.ackArrived[packetNumb] = true;
+
                 System.out.println("We have received packet: " + ack[0]);
             }
         }
