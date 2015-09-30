@@ -22,7 +22,7 @@ public class Utilities
 
     }
 
-    public static void recievePacket(DatagramSocket socket, DatagramPacket packet)
+    public static void receivePacket(DatagramSocket socket, DatagramPacket packet)
     {
         System.out.println("Recieve Packet");
         Timer timer = new Timer();
@@ -35,7 +35,7 @@ public class Utilities
                 try {
                     sockets.receive(packets);
                 } catch (Exception e) {
-                    System.out.println("Error trying to recieve: " + e);
+                    System.out.println("Error trying to receive: " + e);
                 }
             }
         }, 50);

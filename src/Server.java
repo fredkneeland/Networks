@@ -1,6 +1,5 @@
 import java.util.*;
 import java.net.*;
-import java.util.Timer;
 
 public class Server
 {
@@ -59,32 +58,39 @@ public class Server
             this.ackArrived[i] = false;
         }
 
-
-        // send initial data about window size to reciever
-        byte[] setUpInfo = new byte[2];
-        setUpInfo[0] = (byte) this.windowSize;
-        setUpInfo[1] = (byte) this.maximumSequenceNumb;
-        DatagramPacket setUpPacket = new DatagramPacket(setUpInfo, setUpInfo.length, this.IPAddress, this.portOfClient);
-        Utilities.sendPacket(this.sendSocket, setUpPacket);
-        System.out.println("Send window’s size and maximum seq. number to the receiver");
-
         boolean recievedInitalAck = false;
 
+        // go until first packet has been acked
         while (!recievedInitalAck)
         {
-            byte[] ack = new byte[2];
-            DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
-            try
+            // send initial data about window size to reciever
+            byte[] setUpInfo = new byte[2];
+            setUpInfo[0] = (byte) this.windowSize;
+            setUpInfo[1] = (byte) this.maximumSequenceNumb;
+            DatagramPacket setUpPacket = new DatagramPacket(setUpInfo, setUpInfo.length, this.IPAddress, this.portOfClient);
+            Utilities.sendPacket(this.sendSocket, setUpPacket);
+            System.out.println("Send window’s size and maximum seq. number to the receiver");
+
+            int startTime = (int) System.currentTimeMillis();
+            int currentTime = (int) System.currentTimeMillis();
+            // wait for one second before resending
+            while (startTime > (currentTime - 1000) && !recievedInitalAck)
             {
-                this.recieveSocket.receive(ackPacket);
-                if (ackPacket.getAddress() != null)
+                byte[] ack = new byte[2];
+                DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
+                try
                 {
-                    recievedInitalAck = true;
+                    this.recieveSocket.receive(ackPacket);
+                    if (ackPacket.getAddress() != null)
+                    {
+                        recievedInitalAck = true;
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                System.out.println("Failed receiving setup ack: " + e);
+                catch (Exception e)
+                {
+                    System.out.println("Failed receiving setup ack: " + e);
+                }
+                currentTime = (int) System.currentTimeMillis();
             }
         }
 
@@ -129,7 +135,7 @@ public class Server
             // update window for received packet
             byte[] ack = new byte[1];
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
-            Utilities.recievePacket(this.recieveSocket, ackPacket);
+            Utilities.receivePacket(this.recieveSocket, ackPacket);
 
             if (ack[0] != 0)
             {
