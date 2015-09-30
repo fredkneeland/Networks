@@ -61,7 +61,7 @@ public class Server
 
 
         // send initial data about window size to reciever
-        byte[] setUpInfo = new byte[1024];
+        byte[] setUpInfo = new byte[2];
         setUpInfo[0] = (byte) this.windowSize;
         setUpInfo[1] = (byte) this.maximumSequenceNumb;
         DatagramPacket setUpPacket = new DatagramPacket(setUpInfo, setUpInfo.length, this.IPAddress, this.portOfClient);
@@ -72,7 +72,7 @@ public class Server
 
         while (!recievedInitalAck)
         {
-            byte[] ack = new byte[1024];
+            byte[] ack = new byte[2];
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
             try
             {
@@ -133,7 +133,7 @@ public class Server
 
             if (ack[0] != 0)
             {
-                System.out.println("We have recieved packet: " + ack[0]);
+                System.out.println("We have received packet: " + ack[0]);
             }
         }
     }
