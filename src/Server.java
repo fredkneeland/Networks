@@ -15,7 +15,7 @@ public class Server
     int[] packetSentTimer;
 
 
-    public Server(int sendSocketPort, int recieveSocketPort, int portOfClient)
+    public Server(int sendSocketPort, int receiveSocketPort, int portOfClient)
     {
         // initialize defaults
         this.windowSize = 0;
@@ -27,8 +27,8 @@ public class Server
         try
         {
             this.sendSocket = new DatagramSocket(sendSocketPort);
-            this.recieveSocket = new DatagramSocket(recieveSocketPort);
-            this.IPAddress = InetAddress.getByName("localhost");
+            this.recieveSocket = new DatagramSocket(receiveSocketPort);
+            this.IPAddress = InetAddress.getByName("153.90.54.159"); // 153.90.54.159
         }
         catch (Exception e)
         {
