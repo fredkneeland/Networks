@@ -24,10 +24,19 @@ public class Utilities
 
     public static void receivePacket(DatagramSocket socket, DatagramPacket packet)
     {
-        System.out.println("Recieve Packet");
+        System.out.println("In receivePacket Function");
         Timer timer = new Timer();
         sockets = socket;
         packets = packet;
+        try
+        {
+            Thread.sleep(50);
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error sleeping");
+        }
+
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -38,7 +47,6 @@ public class Utilities
                     System.out.println("Error trying to receive: " + e);
                 }
             }
-        }, 500 /* ms the timer will run for*/);
-        System.out.println("Received packet");
+        }, 50 /* ms the timer will run for*/);
     }
 }

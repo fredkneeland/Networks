@@ -33,11 +33,11 @@ public class Client {
             System.out.println("Received packet from sender, sender IP is "+serverIP);
             System.out.println("Max window size is "+windowSize+" and max sequence number is "+maximumSequenceNumber);
             byte[] sendData = new byte[1];
-            //serverIP = InetAddress.getByName("172.18.1.11");
+            serverIP = InetAddress.getByName("192.168.43.244");
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverIP, serverInputPort);
             DatagramSocket sendingSocket = new DatagramSocket(serverInputPort);
             Utilities.sendPacket(sendingSocket, sendPacket);
-            System.out.println("Sent packet with one byte, "+sendData + " to IP "+serverIP+" port "+serverInputPort);
+            System.out.println("Sent packet with one byte, " + sendData + " to IP " + serverIP + " port " + serverInputPort);
             byte[] toBeReceived = new byte[maximumSequenceNumber]; // prepare for max number of one-byte packets.
             System.out.println("Waiting for packet "+nextPacket+", window of size "+windowSize+" starting at "+windowStart);
            // nextPacket = getNextPacket(nextPacket,windowStart);

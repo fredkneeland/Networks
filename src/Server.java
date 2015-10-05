@@ -29,7 +29,7 @@ public class Server
         {
             this.sendSocket = new DatagramSocket(sendSocketPort);
             this.recieveSocket = new DatagramSocket(receiveSocketPort);
-            this.IPAddress = InetAddress.getByName("172.18.1.11"); // 153.90.54.159
+            this.IPAddress = InetAddress.getByName("192.168.43.244"); // 153.90.54.159
         }
         catch (Exception e)
         {
@@ -83,21 +83,13 @@ public class Server
 
                 try
                 {
-                    Thread.sleep(500);
-                    System.out.println("Done sleeping");
-                }
-                catch (Exception e)
-                {
-                    System.out.println(e);
-                }
-
-                try
-                {
-                    Utilities.receivePacket(this.recieveSocket, ackPacket);
+                    //Thread.sleep(500);
+                    Utilities.receivePacket(recieveSocket, ackPacket);
+                    //this.recieveSocket.receive(ackPacket);
                     System.out.println("Trying to receive packet");
                     if (ackPacket.getPort() != -1)
                     {
-                        System.out.println("Received ack: " + ackPacket.getPort());
+                        System.out.println("Received ack: " + ackPacket.getPort() + " ack:" + ack[0]);
                         recievedInitalAck = true;
                     }
                 }
@@ -140,7 +132,7 @@ public class Server
                     this.packetSentTimer[currentPacketIndex] = currentDate;
                     this.packetSent[currentPacketIndex] = true;
                 }
-                else if (this.packetSent[currentPacketIndex] && this.packetSentTimer[currentPacketIndex] < (currentDate - 1000))
+                else if (this.packetSent[currentPacketIndex] && this.packetSentTimer[currentPacketIndex] < (currentDate - 5000))
                 {
                     // do nothing
                 }
@@ -160,14 +152,6 @@ public class Server
             byte[] ack = new byte[1];
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
             Utilities.receivePacket(this.recieveSocket, ackPacket);
-            try
-            {
-                Thread.sleep(50);
-            }
-            catch(Exception e)
-            {
-                System.out.println(e);
-            }
 
             if (ack[0] != 0)
             {
@@ -182,5 +166,6 @@ public class Server
                 System.out.println("We have received packet: " + ack[0]);
             }
         }
+
     }
 }
