@@ -1,3 +1,6 @@
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class Main
 {
     public static void main(String[] args)
@@ -7,8 +10,19 @@ public class Main
         byte a = (byte) numb;
         System.out.println("Byte: " + a);
 
-        runServer(args);
-        runClient(args);
+        //runServer(args);
+        //runClient(args);
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Hello World");
+            }
+        }, 500 /* ms the timer will run for*/);
+
+        System.out.println("After timer");
+
     }
 
     public static void runServer(String[] args)

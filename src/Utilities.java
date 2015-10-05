@@ -38,6 +38,6 @@ public class Utilities
                     System.out.println("Error trying to receive: " + e);
                 }
             }
-        }, 5000 /* ms the timer will run for*/);
+        }, 50 /* ms the timer will run for*/);
     }
 }

@@ -13,6 +13,7 @@ public class Server
     boolean[] packetSent;
     boolean[] ackArrived;
     int[] packetSentTimer;
+    boolean droppedPacket;
 
 
     public Server(int sendSocketPort, int receiveSocketPort, int portOfClient)
@@ -28,12 +29,13 @@ public class Server
         {
             this.sendSocket = new DatagramSocket(sendSocketPort);
             this.recieveSocket = new DatagramSocket(receiveSocketPort);
-            this.IPAddress = InetAddress.getByName("172.18.4.88"); // 153.90.54.159
+            this.IPAddress = InetAddress.getByName("172.18.1.74"); // 153.90.54.159
         }
         catch (Exception e)
         {
             System.out.println("Failed in creating socket with:" + e);
         }
+        droppedPacket = false;
 
     }
 
@@ -81,6 +83,7 @@ public class Server
                 try
                 {
                     Utilities.receivePacket(recieveSocket, ackPacket);
+                    Thread.sleep(500);
                     System.out.println("Trying to receive packet");
                     //this.recieveSocket.receive(ackPacket);
                     if (ackPacket.getPort() != -1)
@@ -109,7 +112,13 @@ public class Server
                 int currentDate = (int) System.currentTimeMillis();
                 int currentPacketIndex = (currentWindowStart  + i) % this.maximumSequenceNumb;
                 // if we haven't sent the current packet
-                if (!this.packetSent[currentPacketIndex])
+                if (!this.droppedPacket && currentPacketIndex == this.droppedPackets)
+                {
+                    this.droppedPacket = true;
+                    this.packetSent[currentPacketIndex] = true;
+                    System.out.println("Packet dropped:" + currentPacketIndex);
+                }
+                else if (!this.packetSent[currentPacketIndex])
                 {
                     // send packet
                     byte[] info = new byte[1];
@@ -132,6 +141,7 @@ public class Server
                     DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
                     Utilities.sendPacket(this.sendSocket, packet);
                     this.packetSentTimer[currentPacketIndex] = currentDate;
+                    System.out.println("Resent packet: " + currentPacketIndex);
                 }
             }
 
@@ -139,6 +149,14 @@ public class Server
             byte[] ack = new byte[1];
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
             Utilities.receivePacket(this.recieveSocket, ackPacket);
+            try
+            {
+                Thread.sleep(50);
+            }
+            catch(Exception e)
+            {
+                System.out.println(e);
+            }
 
             if (ack[0] != 0)
             {
