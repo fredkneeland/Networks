@@ -33,30 +33,43 @@ public class Client {
             System.out.println("Received packet from sender, sender IP is "+serverIP);
             System.out.println("Max window size is "+windowSize+" and max sequence number is "+maximumSequenceNumber);
             byte[] sendData = new byte[1];
-            //serverIP = InetAddress.getByName("172.18.1.11");
+            serverIP = InetAddress.getByName("192.168.43.174");
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverIP, serverInputPort);
             DatagramSocket sendingSocket = new DatagramSocket(serverInputPort);
             Utilities.sendPacket(sendingSocket, sendPacket);
             System.out.println("Sent packet with one byte, "+sendData + " to IP "+serverIP+" port "+serverInputPort);
             byte[] toBeReceived = new byte[maximumSequenceNumber]; // prepare for max number of one-byte packets.
             System.out.println("Waiting for packet "+nextPacket+", window of size "+windowSize+" starting at "+windowStart);
-           // nextPacket = getNextPacket(nextPacket,windowStart);
+            //getNextPacket(nextPacket,windowStart);
+            while(true){
+                byte[] nextData = new byte[1]; // prepare for one-byte packets
+                DatagramPacket next = new DatagramPacket(nextData, nextData.length); // will be receiving one-byte packets from here on
+                Utilities.receivePacket(receiverSocket, next);
+                if(nextData[0]>0){
+                    System.out.println("Sequence number is "+nextData[0]);
+                }
+
+                nextPacket++;
+            }
         } catch (Exception e) {
             System.out.println(e);
         }
 
     }
-/*
-    private int getNextPacket(int nextPacket, int windowStart) {
-        byte[] receiveData = new byte[1]; // prepare for one-byte packets
-        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length); // will be receiving one-byte packets from here on
 
+    private void getNextPacket(int nextPacket, int windowStart) {
+        try {
+            DatagramSocket receiverSocket = new DatagramSocket(clientPort);
+            byte[] receiveData = new byte[1]; // prepare for one-byte packets
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length); // will be receiving one-byte packets from here on
             Utilities.receivePacket(receiverSocket, receivePacket);
-            serverIP = receivePacket.getAddress();
-            serverOutputPort = receivePacket.getPort();
-            // System.out.println("Got first packet from sender, server IP is " + serverIP + " and port is " + serverOutputPort);
-            windowSize = receiveData[0];
-
-            return nextPacket;
-    }*/
+            nextPacket++;
+             System.out.println("Got packet from server, "+receiveData+ " + serverOutputPort");
+           // return nextPacket;
+        }
+        catch (Exception e){
+            System.out.println("Error creating receive socket, "+e.getMessage());
+        }
+       // return 0; // if fail
+    }
 }

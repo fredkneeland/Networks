@@ -39,5 +39,6 @@ public class Utilities
                 }
             }
         }, 500 /* ms the timer will run for*/);
+        System.out.println("Received packet");
     }
 }
