@@ -28,7 +28,7 @@ public class Server
         {
             this.sendSocket = new DatagramSocket(sendSocketPort);
             this.recieveSocket = new DatagramSocket(receiveSocketPort);
-            this.IPAddress = InetAddress.getByName("153.90.54.159"); // 153.90.54.159
+            this.IPAddress = InetAddress.getByName("172.18.4.88"); // 153.90.54.159
         }
         catch (Exception e)
         {
@@ -80,9 +80,12 @@ public class Server
                 DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
                 try
                 {
-                    this.recieveSocket.receive(ackPacket);
-                    if (ackPacket.getAddress() != null)
+                    Utilities.receivePacket(recieveSocket, ackPacket);
+                    System.out.println("Trying to receive packet");
+                    //this.recieveSocket.receive(ackPacket);
+                    if (ackPacket.getPort() != -1)
                     {
+                        System.out.println("Received ack: " + ackPacket.getPort());
                         recievedInitalAck = true;
                     }
                 }

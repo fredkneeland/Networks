@@ -6,12 +6,14 @@ public class Main
         int numb = 12;
         byte a = (byte) numb;
         System.out.println("Byte: " + a);
+
+        runServer(args);
     }
 
     public static void runServer(String[] args)
     {
-        int sendSocketPort = 1337;
-        int receiveSocketPort = 1336;
+        int sendSocketPort = 1336;
+        int receiveSocketPort = 1338;
         int portOfClient = 1337;
         Server server = new Server(sendSocketPort, receiveSocketPort, portOfClient);
 
