@@ -29,7 +29,7 @@ public class Server
         {
             this.sendSocket = new DatagramSocket(sendSocketPort);
             this.recieveSocket = new DatagramSocket(receiveSocketPort);
-            this.IPAddress = InetAddress.getByName("172.18.1.74"); // 153.90.54.159
+            this.IPAddress = InetAddress.getByName("172.18.1.11"); // 153.90.54.159
         }
         catch (Exception e)
         {
