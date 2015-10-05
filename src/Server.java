@@ -106,7 +106,6 @@ public class Server
         System.out.println("Receive confirmation from the receiver");
 
         int currentWindowStart = 0;
-
         while (true)
         {
             // send packets in window and update window when ack. arrives
@@ -166,6 +165,5 @@ public class Server
                 System.out.println("We have received packet: " + ack[0]);
             }
         }
-
     }
 }
