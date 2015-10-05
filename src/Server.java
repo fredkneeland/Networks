@@ -71,21 +71,30 @@ public class Server
             setUpInfo[1] = (byte) this.maximumSequenceNumb;
             DatagramPacket setUpPacket = new DatagramPacket(setUpInfo, setUpInfo.length, this.IPAddress, this.portOfClient);
             Utilities.sendPacket(this.sendSocket, setUpPacket);
-            System.out.println("Send window’s size and maximum seq. number to the receiver");
+            System.out.println("Send window’s size and maximum seq. number to the receiver: " + this.IPAddress);
 
             int startTime = (int) System.currentTimeMillis();
             int currentTime = (int) System.currentTimeMillis();
             // wait for one second before resending
-            while (startTime > (currentTime - 1000) && !recievedInitalAck)
+            while (startTime > (currentTime - 5000) && !recievedInitalAck)
             {
-                byte[] ack = new byte[2];
+                byte[] ack = new byte[1];
                 DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
+
                 try
                 {
-                    Utilities.receivePacket(recieveSocket, ackPacket);
                     Thread.sleep(500);
+                    System.out.println("Done sleeping");
+                }
+                catch (Exception e)
+                {
+                    System.out.println(e);
+                }
+
+                try
+                {
+                    Utilities.receivePacket(this.recieveSocket, ackPacket);
                     System.out.println("Trying to receive packet");
-                    //this.recieveSocket.receive(ackPacket);
                     if (ackPacket.getPort() != -1)
                     {
                         System.out.println("Received ack: " + ackPacket.getPort());
@@ -97,7 +106,9 @@ public class Server
                     System.out.println("Failed receiving setup ack: " + e);
                 }
                 currentTime = (int) System.currentTimeMillis();
+                System.out.println("Current time:" + currentTime + " StartTime: " + startTime);
             }
+            System.out.println("After while");
         }
 
         System.out.println("Receive confirmation from the receiver");
