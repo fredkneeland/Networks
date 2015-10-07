@@ -74,7 +74,7 @@ public class Client {
                                 System.out.print("]");
                             }
                         }
-                        Sysetm.out.println();// return
+                        System.out.println();// return
                     }
                 }
 
