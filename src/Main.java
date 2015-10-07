@@ -10,8 +10,8 @@ public class Main
         byte a = (byte) numb;
         System.out.println("Byte: " + a);
 
-        //runServer(args);
-        runClient(args);
+        runServer(args);
+        //runClient(args);
     }
 
     public static void runServer(String[] args)

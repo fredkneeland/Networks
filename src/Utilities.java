@@ -29,7 +29,7 @@ public class Utilities
 
         try {
             sockets.receive(packets);
-            sockets.setSoTimeout(200);
+            sockets.setSoTimeout(50);
         } catch (Exception e) {}
 
 //        timer.schedule(new TimerTask() {
@@ -61,14 +61,14 @@ public class Utilities
         for (int i = 0; i < windowSize; i++)
         {
             int current = i + windowStart;
-            if (current > sent.length)
+            if (current >= sent.length)
             {
                 values[i] = "-";
             }
             else
             {
                 values[i] = "" + current;
-                if (sent[i]) {
+                if (sent[current]) {
                     values[i] += "*";
                 }
             }
