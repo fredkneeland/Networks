@@ -138,7 +138,7 @@ public class Server
                     DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
                     Utilities.sendPacket(this.sendSocket, packet);
                     this.packetSentTimer[currentPacketIndex] = currentDate;
-                    System.out.println("Resent packet: " + info[0] + ", window ");
+                    System.out.print("Resent packet: " + info[0] + ", window ");
                     Utilities.printServer(this.packetSent, currentWindowStart, info[0]);
                 }
             }
@@ -157,7 +157,7 @@ public class Server
                 }
                 this.ackArrived[packetNumb] = true;
 
-                System.out.println("Ack " + ack[0] + " is received, window ");
+                System.out.print("Ack " + ack[0] + " is received, window ");
                 Utilities.printServer(this.packetSent, currentWindowStart, ack[0]);
             }
 

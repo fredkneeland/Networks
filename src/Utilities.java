@@ -84,5 +84,6 @@ public class Utilities
         System.out.print(values[windowSize-1]);
         System.out.print("]");
         System.out.println("");
+        
     }
 }
