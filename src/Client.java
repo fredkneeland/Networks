@@ -47,10 +47,10 @@ public class Client {
                // Thread.sleep(95);
                 byte[] nextData = new byte[1]; // prepare for one-byte packets
                 DatagramPacket next = new DatagramPacket(nextData, nextData.length); // will be receiving one-byte packets from here on
-                //Utilities.receivePacket(receiverSocket, next);
-                receiverSocket.receive(next);
+                Utilities.receivePacket(receiverSocket, next);
+               // receiverSocket.receive(next);
                 if(nextData[0]>0){
-                    int seqNum = receiveData[0]-1; // sequence number starts at 0, but need to send 1 to receive
+                    int seqNum = nextData[0]-1; // sequence number starts at 0, but need to send 1 to receive
                     System.out.print("Packet " + seqNum + " received. ");
                     packetLog[seqNum] = 'r'; // set to r for received
                     if(nextData[0]<(windowSize+windowStart)) {
@@ -58,26 +58,26 @@ public class Client {
                         Utilities.sendPacket(sendingSocket, out); // send ack for packet received within window
                         System.out.print(" Sent ACK for " + seqNum);
                         packetLog[seqNum] = 'a'; // mark the packet received as ACKed
-                        System.out.println(" Window at sequence number " + windowStart);
-                        System.out.print("Sequence number: ");
-                        for (int i = 0; i < packetLog.length; i++) {
-                            System.out.print(i + ", ");
-                        }
-                        System.out.println(); // return
-                        System.out.print("Packet log:      ");
-                        for (int i = 0; i < packetLog.length; i++) {
-                            if (i == windowStart) {
-                                System.out.print("[");
-                            }
-                            System.out.print(packetLog[i] + ", ");
-                            if (i == (windowStart + (windowSize-1))) {
-                                System.out.print("]");
+                        for(int i=0;i<packetLog.length;i++){
+                            if(i==windowStart&&(packetLog[i]=='a')){
+                                windowStart++;
                             }
                         }
+                        System.out.print(" Window [");
+                        for (int i = windowStart; i < (windowStart+windowSize); i++) {
+                            if(i<packetLog.length) {
+                                System.out.print(i);
+                                if (packetLog[i] == 'a') {
+                                    System.out.print("#");
+                                }
+                            }
+                            else System.out.print("-");
+                            System.out.print(" ");
+                        }
+                        System.out.print("] ");
                         System.out.println();// return
                     }
                 }
-
                 nextPacket++;
             }
         } catch (Exception e) {
