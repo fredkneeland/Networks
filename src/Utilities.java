@@ -1,13 +1,10 @@
 import java.net.*;
-import java.io.*;
-import java.util.*;
 
 public class Utilities
 {
-    public static DatagramSocket sockets;
-    public static DatagramPacket packets;
-
-
+    /**
+     * This function sends a packet
+     */
     public static void sendPacket(DatagramSocket socket, DatagramPacket packet)
     {
         try
@@ -20,40 +17,20 @@ public class Utilities
         }
     }
 
+    /**
+     * This method recieves a packet with a 50ms timeout
+     */
     public static void receivePacket(DatagramSocket socket, DatagramPacket packet)
     {
-        //System.out.println("In receivePacket Function");
-        Timer timer = new Timer();
-        sockets = socket;
-        packets = packet;
-
         try {
-            sockets.receive(packets);
-            sockets.setSoTimeout(50);
+            socket.receive(packet);
+            socket.setSoTimeout(50);
         } catch (Exception e) {}
-
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                // Your database code here
-//                try {
-//                    sockets.receive(packets);
-//                } catch (Exception e) {
-//                    System.out.println("Error trying to receive: " + e);
-//                }
-//            }
-//        }, 5 /* ms the timer will run for*/);
-//
-//        try
-//        {
-//            Thread.sleep(100);
-//        }
-//        catch(Exception e)
-//        {
-//            System.out.println("Error sleeping");
-//        }
     }
 
+    /**
+     * This method prints out the current window and status of packets
+     */
     public static void printServer(boolean[] sent, int windowStart, int windowSize)
     {
         String[] values = new String[windowSize];
@@ -84,6 +61,5 @@ public class Utilities
         System.out.print(values[windowSize-1]);
         System.out.print("]");
         System.out.println("");
-        
     }
 }

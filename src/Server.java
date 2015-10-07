@@ -16,6 +16,9 @@ public class Server
     boolean droppedPacket;
 
 
+    /**
+     * Constructor to set up the various sockets
+     */
     public Server(int sendSocketPort, int receiveSocketPort, int portOfClient)
     {
         // initialize defaults
@@ -39,6 +42,9 @@ public class Server
 
     }
 
+    /**
+     * Main function that will run the Server code
+     */
     public void run()
     {
         Scanner in = new Scanner(System.in);
@@ -62,7 +68,7 @@ public class Server
 
         boolean recievedInitalAck = false;
 
-        // go until first packet has been acked
+        // go until handshake packet has been acked
         while (!recievedInitalAck)
         {
             // send initial data about window size to reciever
@@ -75,7 +81,7 @@ public class Server
 
             int startTime = (int) System.currentTimeMillis();
             int currentTime = (int) System.currentTimeMillis();
-            // wait for one second before resending
+            // wait for half a second before resending initial handshake
             while (startTime > (currentTime - 500) && !recievedInitalAck)
             {
                 byte[] ack = new byte[1];
@@ -101,6 +107,7 @@ public class Server
         System.out.println("Receive confirmation from the receiver");
 
         int currentWindowStart = 0;
+        // Main loop where we send out packets and receive acks
         while (true)
         {
             int currentDate = (int) System.currentTimeMillis();
@@ -108,7 +115,7 @@ public class Server
             for (int i = 0; i < this.windowSize; i++)
             {
                 int currentPacketIndex = (currentWindowStart  + i) % this.maximumSequenceNumb;
-                // if we haven't sent the current packet
+                // if we haven't sent the current packet and are going to drop this packet
                 if (!this.droppedPacket && currentPacketIndex == this.droppedPackets)
                 {
                     this.droppedPacket = true;
@@ -116,6 +123,7 @@ public class Server
                     System.out.println("Packet dropped:" + currentPacketIndex);
                     this.packetSentTimer[currentPacketIndex] = currentDate;
                 }
+                // if we haven't sent out a packet in the window then send it
                 else if (!this.packetSent[currentPacketIndex])
                 {
                     // send packet
@@ -123,11 +131,12 @@ public class Server
                     info[0] = (byte) (currentPacketIndex + 1);
                     DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
                     Utilities.sendPacket(this.sendSocket, packet);
-                    System.out.print("Packet " + (info[0] - 1) + " is sent, window ");
-                    Utilities.printServer(this.packetSent, currentWindowStart, this.windowSize);
                     this.packetSentTimer[currentPacketIndex] = currentDate;
                     this.packetSent[currentPacketIndex] = true;
+                    System.out.print("Packet " + (info[0] - 1) + " is sent, window ");
+                    Utilities.printServer(this.packetSent, currentWindowStart, this.windowSize);
                 }
+                // if we have sent a packet but haven't received ack after time out then resend
                 else if (!this.ackArrived[currentPacketIndex] && this.packetSentTimer[currentPacketIndex] < (currentDate - 500))
                 {
                     // we have passed the timer for this packet and should resend
@@ -136,7 +145,7 @@ public class Server
                     DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
                     Utilities.sendPacket(this.sendSocket, packet);
                     this.packetSentTimer[currentPacketIndex] = currentDate;
-                    System.out.print("Packet " + (info[0] - 1) + " times out, resend packet " + (info[0] - 1));
+                    System.out.println("Packet " + (info[0] - 1) + " times out, resend packet " + (info[0] - 1));
                 }
             }
 
@@ -145,11 +154,13 @@ public class Server
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
             Utilities.receivePacket(this.recieveSocket, ackPacket);
 
+            // if we received an ack then register that packet as received and update window if relevant
             if (ack[0] > 0)
             {
                 int packetNumb = ((int) ack[0]) - 1;
                 this.ackArrived[packetNumb] = true;
 
+                // check to see if and how far the window should be updated
                 for (int i = 0; i < this.windowSize; i++)
                 {
                     if (currentWindowStart < this.ackArrived.length && this.ackArrived[currentWindowStart])
@@ -162,6 +173,7 @@ public class Server
                 Utilities.printServer(this.packetSent, currentWindowStart, this.windowSize);
             }
 
+            // if all packets have been sent then we are done and can exit
             if (currentWindowStart >= this.maximumSequenceNumb)
             {
                 System.out.println("we are done");

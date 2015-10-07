@@ -1,6 +1,3 @@
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class Main
 {
     public static void main(String[] args)
@@ -14,6 +11,7 @@ public class Main
         //runClient(args);
     }
 
+    // this method is for running the server
     public static void runServer(String[] args)
     {
         int sendSocketPort = 1336;
@@ -24,6 +22,7 @@ public class Main
         server.run();
     }
 
+    // this method is for running the client
     public static void runClient(String[] args)
     {
         Client client = new Client();
