@@ -1,3 +1,12 @@
+/**
+ * Networks lab #3
+ *
+ * Fred Kneeland and Collin Moore
+ *
+ * run the main function to get the receiver to start
+ * listening then run server
+ */
+
 import java.net.*;
 
 // This is the class for all the client code
@@ -12,6 +21,20 @@ public class Client
     int serverOutputPort = -1; // port on the server
     int serverInputPort = 1338;
 
+    // the main method that runs
+    public static void main(String[] args)
+    {
+        runClient(args);
+    }
+
+    // this method is for running the client
+    public static void runClient(String[] args)
+    {
+        Client client = new Client();
+
+        client.run();
+    }
+
     /**
      * This is the main function that will handle the receiving of the data
      */
@@ -25,7 +48,7 @@ public class Client
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             while(serverOutputPort == -1)
             {
-                Utilities.receivePacket(receiverSocket, receivePacket);
+                receivePacket(receiverSocket, receivePacket);
                 serverIP = receivePacket.getAddress();
                 serverOutputPort = receivePacket.getPort();
                 windowSize = receiveData[0];
@@ -41,7 +64,7 @@ public class Client
             byte[] sendData = new byte[1];
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverIP, serverInputPort);
             DatagramSocket sendingSocket = new DatagramSocket(serverInputPort);
-            Utilities.sendPacket(sendingSocket, sendPacket);
+            sendPacket(sendingSocket, sendPacket);
             System.out.println("Sent packet with one byte, " + sendData + " to IP " + serverIP + " port " + serverInputPort);
             System.out.println("Waiting for packet "+nextPacket+", window of size "+windowSize+" starting at "+windowStart);
 
@@ -50,47 +73,103 @@ public class Client
             {
                 byte[] nextData = new byte[1]; // prepare for one-byte packets
                 DatagramPacket next = new DatagramPacket(nextData, nextData.length); // will be receiving one-byte packets from here on
-                //Utilities.receivePacket(receiverSocket, next);
-                receiverSocket.receive(next);
-                if(nextData[0] > 0)
-                {
-                    int seqNum = receiveData[0]-1; // sequence number starts at 0, but need to send 1 to receive
+                receivePacket(receiverSocket, next);
+               // receiverSocket.receive(next);
+                if(nextData[0]>0){
+                    int seqNum = nextData[0]-1; // sequence number starts at 0, but need to send 1 to receive
                     System.out.print("Packet " + seqNum + " received. ");
                     packetLog[seqNum] = 'r'; // set to r for received
                     if(nextData[0]<(windowSize+windowStart))
                     {
                         DatagramPacket out = new DatagramPacket(nextData, nextData.length, serverIP, serverInputPort);
-                        Utilities.sendPacket(sendingSocket, out); // send ack for packet received within window
+                        sendPacket(sendingSocket, out); // send ack for packet received within window
                         System.out.print(" Sent ACK for " + seqNum);
                         packetLog[seqNum] = 'a'; // mark the packet received as ACKed
-                        System.out.println(" Window at sequence number " + windowStart);
-                        System.out.print("Sequence number: ");
-                        for (int i = 0; i < packetLog.length; i++)
-                        {
-                            System.out.print(i + ", ");
-                        }
-                        System.out.println(); // return
-                        System.out.print("Packet log:      ");
-                        for (int i = 0; i < packetLog.length; i++)
-                        {
-                            if (i == windowStart)
-                            {
-                                System.out.print("[");
-                            }
-                            System.out.print(packetLog[i] + ", ");
-                            if (i == (windowStart + (windowSize-1)))
-                            {
-                                System.out.print("]");
+                        for(int i=0;i<packetLog.length;i++){
+                            if(i==windowStart&&(packetLog[i]=='a')){
+                                windowStart++;
                             }
                         }
+                        System.out.print(" Window [");
+                        for (int i = windowStart; i < (windowStart+windowSize); i++) {
+                            if(i<packetLog.length) {
+                                System.out.print(i);
+                                if (packetLog[i] == 'a') {
+                                    System.out.print("#");
+                                }
+                            }
+                            else System.out.print("-");
+                            System.out.print(" ");
+                        }
+                        System.out.print("] ");
                         System.out.println();// return
                     }
                 }
-
                 nextPacket++;
             }
         } catch (Exception e) {
             System.out.println(e);
         }
+    }
+
+    /**
+     * This function sends a packet
+     */
+    public static void sendPacket(DatagramSocket socket, DatagramPacket packet)
+    {
+        try
+        {
+            socket.send(packet);
+        }
+        catch (Exception e)
+        {
+            System.out.print("Send failed" + e);
+        }
+    }
+
+    /**
+     * This method receives a packet with a 50ms timeout
+     */
+    public static void receivePacket(DatagramSocket socket, DatagramPacket packet)
+    {
+        try {
+            socket.receive(packet);
+            socket.setSoTimeout(50);
+        } catch (Exception e) {}
+    }
+
+    /**
+     * This method prints out the current window and status of packets
+     */
+    public static void printServer(boolean[] sent, int windowStart, int windowSize)
+    {
+        String[] values = new String[windowSize];
+
+        for (int i = 0; i < windowSize; i++)
+        {
+            int current = i + windowStart;
+            if (current >= sent.length)
+            {
+                values[i] = "-";
+            }
+            else
+            {
+                values[i] = "" + current;
+                if (sent[current]) {
+                    values[i] += "*";
+                }
+            }
+        }
+
+        System.out.print("[");
+
+        for (int j = 0; j < windowSize-1; j++)
+        {
+            System.out.print(values[j] + ", ");
+        }
+
+        System.out.print(values[windowSize-1]);
+        System.out.print("]");
+        System.out.println("");
     }
 }

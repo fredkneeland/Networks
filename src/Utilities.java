@@ -18,7 +18,7 @@ public class Utilities
     }
 
     /**
-     * This method recieves a packet with a 50ms timeout
+     * This method receives a packet with a 50ms timeout
      */
     public static void receivePacket(DatagramSocket socket, DatagramPacket packet)
     {

@@ -1,3 +1,13 @@
+/**
+ * Networks lab #3
+ *
+ * Fred Kneeland and Collin Moore
+ *
+ * add the correct IP address of the receiver in the
+ * Server constructor and then run main
+ */
+
+
 import java.util.*;
 import java.net.*;
 
@@ -14,6 +24,23 @@ public class Server
     boolean[] ackArrived;
     int[] packetSentTimer;
     boolean droppedPacket;
+
+    // this is the main method
+    public static void main(String[] args)
+    {
+        runServer(args);
+    }
+
+    // this method is for running the server
+    public static void runServer(String[] args)
+    {
+        int sendSocketPort = 1336;
+        int receiveSocketPort = 1338;
+        int portOfClient = 1337;
+        Server server = new Server(sendSocketPort, receiveSocketPort, portOfClient);
+
+        server.run();
+    }
 
 
     /**
@@ -32,6 +59,16 @@ public class Server
         {
             this.sendSocket = new DatagramSocket(sendSocketPort);
             this.recieveSocket = new DatagramSocket(receiveSocketPort);
+
+
+            /******************************************************************
+             *
+             *
+             * IP address of client is set below
+             *
+             *
+             ******************************************************************/
+
             this.IPAddress = InetAddress.getByName("192.168.43.244"); // 153.90.54.159
         }
         catch (Exception e)
@@ -76,7 +113,7 @@ public class Server
             setUpInfo[0] = (byte) this.windowSize;
             setUpInfo[1] = (byte) this.maximumSequenceNumb;
             DatagramPacket setUpPacket = new DatagramPacket(setUpInfo, setUpInfo.length, this.IPAddress, this.portOfClient);
-            Utilities.sendPacket(this.sendSocket, setUpPacket);
+            sendPacket(this.sendSocket, setUpPacket);
             System.out.println("Send window’s size and maximum seq. number to the receiver: " + this.IPAddress);
 
             int startTime = (int) System.currentTimeMillis();
@@ -88,7 +125,7 @@ public class Server
                 DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
                 try
                 {
-                    Utilities.receivePacket(recieveSocket, ackPacket);
+                    receivePacket(recieveSocket, ackPacket);
                     if (ackPacket.getPort() != -1)
                     {
                         System.out.println("Received ack: " + ackPacket.getPort() + " ack:" + ack[0]);
@@ -130,11 +167,11 @@ public class Server
                     byte[] info = new byte[1];
                     info[0] = (byte) (currentPacketIndex + 1);
                     DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
-                    Utilities.sendPacket(this.sendSocket, packet);
+                    sendPacket(this.sendSocket, packet);
                     this.packetSentTimer[currentPacketIndex] = currentDate;
                     this.packetSent[currentPacketIndex] = true;
                     System.out.print("Packet " + (info[0] - 1) + " is sent, window ");
-                    Utilities.printServer(this.packetSent, currentWindowStart, this.windowSize);
+                    printServer(this.packetSent, currentWindowStart, this.windowSize);
                 }
                 // if we have sent a packet but haven't received ack after time out then resend
                 else if (!this.ackArrived[currentPacketIndex] && this.packetSentTimer[currentPacketIndex] < (currentDate - 500))
@@ -143,7 +180,7 @@ public class Server
                     byte[] info = new byte[1];
                     info[0] = (byte) (currentPacketIndex + 1);
                     DatagramPacket packet = new DatagramPacket(info, info.length, this.IPAddress, this.portOfClient);
-                    Utilities.sendPacket(this.sendSocket, packet);
+                    sendPacket(this.sendSocket, packet);
                     this.packetSentTimer[currentPacketIndex] = currentDate;
                     System.out.println("Packet " + (info[0] - 1) + " times out, resend packet " + (info[0] - 1));
                 }
@@ -152,7 +189,7 @@ public class Server
             // update window for received packet
             byte[] ack = new byte[1];
             DatagramPacket ackPacket = new DatagramPacket(ack, ack.length);
-            Utilities.receivePacket(this.recieveSocket, ackPacket);
+            receivePacket(this.recieveSocket, ackPacket);
 
             // if we received an ack then register that packet as received and update window if relevant
             if (ack[0] > 0)
@@ -170,7 +207,7 @@ public class Server
                 }
 
                 System.out.print("Ack " + (ack[0] - 1) + " is received, window ");
-                Utilities.printServer(this.packetSent, currentWindowStart, this.windowSize);
+                printServer(this.packetSent, currentWindowStart, this.windowSize);
             }
 
             // if all packets have been sent then we are done and can exit
@@ -181,5 +218,66 @@ public class Server
             }
 
         }
+    }
+
+    /**
+     * This function sends a packet
+     */
+    public static void sendPacket(DatagramSocket socket, DatagramPacket packet)
+    {
+        try
+        {
+            socket.send(packet);
+        }
+        catch (Exception e)
+        {
+            System.out.print("Send failed" + e);
+        }
+    }
+
+    /**
+     * This method receives a packet with a 50ms timeout
+     */
+    public static void receivePacket(DatagramSocket socket, DatagramPacket packet)
+    {
+        try {
+            socket.receive(packet);
+            socket.setSoTimeout(50);
+        } catch (Exception e) {}
+    }
+
+    /**
+     * This method prints out the current window and status of packets
+     */
+    public static void printServer(boolean[] sent, int windowStart, int windowSize)
+    {
+        String[] values = new String[windowSize];
+
+        for (int i = 0; i < windowSize; i++)
+        {
+            int current = i + windowStart;
+            if (current >= sent.length)
+            {
+                values[i] = "-";
+            }
+            else
+            {
+                values[i] = "" + current;
+                if (sent[current]) {
+                    values[i] += "*";
+                }
+            }
+        }
+
+        System.out.print("[");
+
+        for (int j = 0; j < windowSize-1; j++)
+        {
+            System.out.print(values[j] + ", ");
+        }
+
+        System.out.print(values[windowSize-1]);
+        System.out.print("]");
+        System.out.println("");
     }
 }
