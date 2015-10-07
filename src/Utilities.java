@@ -18,29 +18,6 @@ public class Utilities
         {
             System.out.print("Send failed" + e);
         }
-
-    }
-
-    public static void sendPacketWithTimeout(final DatagramSocket socket, final DatagramPacket packet, final int timeout)
-    {
-        try {
-            socket.send(packet);
-            sockets = socket;
-            packets = packet;
-            Timer timer = new Timer();
-
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    // Your database code here
-                    try {
-                        sendPacketWithTimeout(socket, packet, timeout);
-                    } catch (Exception e) {
-                        System.out.println("Error trying to receive: " + e);
-                    }
-                }
-            }, timeout /* ms the timer will run for*/);
-        } catch (Exception e) { System.out.println(e); }
     }
 
     public static void receivePacket(DatagramSocket socket, DatagramPacket packet)
@@ -52,9 +29,8 @@ public class Utilities
 
         try {
             sockets.receive(packets);
-        } catch (Exception e) {
-            System.out.println("Error trying to receive: " + e);
-        }
+            sockets.setSoTimeout(200);
+        } catch (Exception e) {}
 
 //        timer.schedule(new TimerTask() {
 //            @Override

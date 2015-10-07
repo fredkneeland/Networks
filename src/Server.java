@@ -83,10 +83,7 @@ public class Server
 
                 try
                 {
-                    //Thread.sleep(500);
                     Utilities.receivePacket(recieveSocket, ackPacket);
-                    //this.recieveSocket.receive(ackPacket);
-                    System.out.println("Trying to receive packet");
                     if (ackPacket.getPort() != -1)
                     {
                         System.out.println("Received ack: " + ackPacket.getPort() + " ack:" + ack[0]);
