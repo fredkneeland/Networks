@@ -32,13 +32,15 @@ public class Client {
             System.out.println("Received packet from sender, sender IP is "+serverIP);
             System.out.println("Max window size is "+windowSize+" and max sequence number is "+maximumSequenceNumber);
             char[] packetLog = new char[maximumSequenceNumber]; // make an array to store which packets have been received, acked
+            for(int i=0;i<packetLog.length;i++){
+                packetLog[i] = 'n'; // set to n for not received
+            }
             byte[] sendData = new byte[1];
            // serverIP = InetAddress.getByName("192.168.43.244");
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverIP, serverInputPort);
             DatagramSocket sendingSocket = new DatagramSocket(serverInputPort);
             Utilities.sendPacket(sendingSocket, sendPacket);
             System.out.println("Sent packet with one byte, " + sendData + " to IP " + serverIP + " port " + serverInputPort);
-            byte[] toBeReceived = new byte[maximumSequenceNumber]; // prepare for max number of one-byte packets.
             System.out.println("Waiting for packet "+nextPacket+", window of size "+windowSize+" starting at "+windowStart);
             //getNextPacket(nextPacket,windowStart);
             while(true){
@@ -49,20 +51,34 @@ public class Client {
                 receiverSocket.receive(next);
                 if(nextData[0]>0){
                     System.out.print("Packet " + nextData[0] + " received. ");
-                    toBeReceived[nextData[0]] = 'r'; // set to r for received
-                    if(nextData[0]==windowStart)// if the packet received is the first in the window...
-                    {
-                        windowStart++; // move the window up
-                        System.out.print("Moved window to"+windowStart);
-                    }
+                    packetLog[nextData[0]] = 'r'; // set to r for received
+
                     for(int i=0;i<nextData[0];i++){
-                        if(windowSize<i&(toBeReceived[i]=='r'|toBeReceived[i]=='a')){ // if previous packets have been received, move window
-                            windowSize = i; // move window start up to i
+                        if(windowSize<i&packetLog[i]=='a'){ // if previous packets have been acked, move window
+                            windowStart = i; // move window start up to i
                         }
-                        else break; // if
+                        else break; // if a packet is not acked, don't move window up
                     }
                     DatagramPacket out = new DatagramPacket(nextData, nextData.length, serverIP, serverInputPort);
-                    Utilities.sendPacket(sendingSocket,out);
+                    Utilities.sendPacket(sendingSocket,out); // send ack for packet received
+                    System.out.print(" Sent ACK for "+nextData[0]);
+                    packetLog[nextData[0]]='a'; // mark the packet received as ACKed
+                    System.out.println(" Window at sequence number " + windowStart);
+                    System.out.print("Sequence number: ");
+                    for(int i=0;i<packetLog.length;i++){
+                        System.out.print(i+", ");
+                    }
+                    System.out.println(); // return
+                    System.out.print("Packet log: ");
+                    for(int i=0;i<packetLog.length;i++){
+                        if(i==windowStart){
+                            System.out.print("[");
+                        }
+                        System.out.print(packetLog[i]+", ");
+                        if(i==(windowStart+windowSize)){
+                            System.out.print("]");
+                        }
+                    }
                 }
 
                 nextPacket++;
