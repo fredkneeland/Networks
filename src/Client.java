@@ -9,7 +9,7 @@ public class Client {
     int clientPort = 1337; // port where client will receive data on
     int windowSize = 1024; // 1024 bytes
     int maximumSequenceNumber;
-    int windowStart = 1;
+    int windowStart = 0;
     int nextPacket = 0;
     InetAddress serverIP; // IP address of sender
     int serverOutputPort = -1; // port on the server
@@ -50,34 +50,31 @@ public class Client {
                 //Utilities.receivePacket(receiverSocket, next);
                 receiverSocket.receive(next);
                 if(nextData[0]>0){
-                    System.out.print("Packet " + nextData[0] + " received. ");
-                    packetLog[nextData[0]] = 'r'; // set to r for received
-
-                    for(int i=0;i<nextData[0];i++){
-                        if(windowSize<i&packetLog[i]=='a'){ // if previous packets have been acked, move window
-                            windowStart = i; // move window start up to i
+                    int seqNum = receiveData[0]-1; // sequence number starts at 0, but need to send 1 to receive
+                    System.out.print("Packet " + seqNum + " received. ");
+                    packetLog[seqNum] = 'r'; // set to r for received
+                    if(nextData[0]<(windowSize+windowStart)) {
+                        DatagramPacket out = new DatagramPacket(nextData, nextData.length, serverIP, serverInputPort);
+                        Utilities.sendPacket(sendingSocket, out); // send ack for packet received within window
+                        System.out.print(" Sent ACK for " + seqNum);
+                        packetLog[seqNum] = 'a'; // mark the packet received as ACKed
+                        System.out.println(" Window at sequence number " + windowStart);
+                        System.out.print("Sequence number: ");
+                        for (int i = 0; i < packetLog.length; i++) {
+                            System.out.print(i + ", ");
                         }
-                        else break; // if a packet is not acked, don't move window up
-                    }
-                    DatagramPacket out = new DatagramPacket(nextData, nextData.length, serverIP, serverInputPort);
-                    Utilities.sendPacket(sendingSocket,out); // send ack for packet received
-                    System.out.print(" Sent ACK for "+nextData[0]);
-                    packetLog[nextData[0]]='a'; // mark the packet received as ACKed
-                    System.out.println(" Window at sequence number " + windowStart);
-                    System.out.print("Sequence number: ");
-                    for(int i=0;i<packetLog.length;i++){
-                        System.out.print(i+", ");
-                    }
-                    System.out.println(); // return
-                    System.out.print("Packet log: ");
-                    for(int i=0;i<packetLog.length;i++){
-                        if(i==windowStart){
-                            System.out.print("[");
+                        System.out.println(); // return
+                        System.out.print("Packet log:      ");
+                        for (int i = 0; i < packetLog.length; i++) {
+                            if (i == windowStart) {
+                                System.out.print("[");
+                            }
+                            System.out.print(packetLog[i] + ", ");
+                            if (i == (windowStart + (windowSize-1))) {
+                                System.out.print("]");
+                            }
                         }
-                        System.out.print(packetLog[i]+", ");
-                        if(i==(windowStart+windowSize)){
-                            System.out.print("]");
-                        }
+                        Sysetm.out.println();// return
                     }
                 }
 
